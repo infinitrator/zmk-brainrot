@@ -10,7 +10,7 @@
  * Было 160 и 3 импульса. Сейчас 65 и 1 импульс.
  */
 #define ZMK_POINTING_DEFAULT_MOVE_VAL 2200
-#define ZMK_POINTING_DEFAULT_SCRL_VAL 65
+#define ZMK_POINTING_DEFAULT_SCRL_VAL 195
 
 #include <dt-bindings/zmk/pointing.h>
 
