@@ -3,14 +3,13 @@
 #include <dt-bindings/zmk/bt.h>
 
 /*
- * Слабее и стабильнее:
- * MOVE_VAL — скорость увода курсора вправо.
- * SCRL_VAL — сила колесика.
+ * Теперь 006 — не колесико, а drag-свайп мышью.
  *
- * Было 160 и 3 импульса. Сейчас 65 и 1 импульс.
+ * MOVE_VAL отвечает за скорость/длину движения.
+ * Если свайп слабый — подними до 2600/3000.
+ * Если слишком резкий — опусти до 1800/2000.
  */
-#define ZMK_POINTING_DEFAULT_MOVE_VAL 2200
-#define ZMK_POINTING_DEFAULT_SCRL_VAL 195
+#define ZMK_POINTING_DEFAULT_MOVE_VAL 2300
 
 #include <dt-bindings/zmk/pointing.h>
 
@@ -18,40 +17,63 @@
     macros {
         /*
          * 006 / P0.06:
-         * Увести курсор вправо -> 10 ms влево в hitbox -> один короткий wheel-scroll.
-         * Направление инвертировано обратно: SCRL_DOWN вместо SCRL_UP.
-         * Никакого drag, никакого ЛКМ, только колесико.
+         * Имитация свайпа:
+         * вниз примерно на треть экрана -> зажать ЛКМ -> резво вверх -> отпустить -> вернуть курсор вниз.
          */
-        next_video_wheel_safe: next_video_wheel_safe {
+        next_video_drag_swipe: next_video_drag_swipe {
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
             wait-ms = <35>;
-            tap-ms = <25>;
+            tap-ms = <35>;
 
             bindings
-                /* курсор вправо */
-                = <&macro_tap_time 450>
+                /*
+                 * Чуть уводим вправо, чтобы курсор не был по центру.
+                 * Потом микрошаг влево, чтобы не выйти за hitbox приложения.
+                 */
+                = <&macro_tap_time 350>
                 , <&macro_tap &mmv MOVE_RIGHT>
-
-                /* маленький возврат влево, чтобы попасть в hitbox приложения */
-                , <&macro_wait_time 25>
+                , <&macro_wait_time 20>
                 , <&macro_tap_time 10>
                 , <&macro_tap &mmv MOVE_LEFT>
 
-                /* пауза перед колесиком */
-                , <&macro_wait_time 70>
-
-                /* один короткий wheel-scroll в другую сторону */
-                , <&macro_tap_time 25>
-                , <&macro_tap &msc SCRL_DOWN>
+                /*
+                 * Стартовая точка свайпа: опускаемся вниз примерно на треть экрана.
+                 */
+                , <&macro_wait_time 40>
+                , <&macro_tap_time 260>
+                , <&macro_tap &mmv MOVE_DOWN>
 
                 /*
-                 * Пауза после wheel-события.
-                 * Это не удержание, а наоборот "дать приложению отпустить анимацию".
+                 * Зажимаем ЛКМ.
                  */
-                , <&macro_wait_time 220>
+                , <&macro_wait_time 40>
+                , <&macro_press &mkp LCLK>
 
-                /* вернуть обычную длительность */
+                /*
+                 * Резвый свайп вверх.
+                 */
+                , <&macro_wait_time 30>
+                , <&macro_tap_time 180>
+                , <&macro_tap &mmv MOVE_UP>
+
+                /*
+                 * ОБЯЗАТЕЛЬНО отпускаем, чтобы окно не зависало на половине.
+                 */
+                , <&macro_wait_time 30>
+                , <&macro_release &mkp LCLK>
+
+                /*
+                 * Возврат курсора вниз примерно в начальную точку.
+                 * Это уже без зажатия кнопки мыши.
+                 */
+                , <&macro_wait_time 160>
+                , <&macro_tap_time 180>
+                , <&macro_tap &mmv MOVE_DOWN>
+
+                /*
+                 * Возвращаем обычную длительность тапа.
+                 */
                 , <&macro_tap_time 35>
                 ;
         };
@@ -89,7 +111,7 @@
 
         default_layer {
             bindings = <
-                &next_video_wheel_safe  /* 006 / P0.06 — безопасный wheel-scroll */
+                &next_video_drag_swipe  /* 006 / P0.06 — drag-свайп */
                 &like_double_click      /* 008 / P0.08 — лайк */
             >;
         };
