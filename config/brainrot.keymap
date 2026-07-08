@@ -28,9 +28,14 @@
             tap-ms = <35>;
 
             bindings
-                /* убираем курсор вправо */
+                /* убираем курсор вправо до края */
                 = <&macro_tap_time 700>
                 , <&macro_tap &mmv MOVE_RIGHT>
+
+                /* микрошаг влево, чтобы курсор вернулся в hitbox приложения */
+                , <&macro_wait_time 30>
+                , <&macro_tap_time 3>
+                , <&macro_tap &mmv MOVE_LEFT>
 
                 /* небольшая пауза, чтобы Android успел обработать движение */
                 , <&macro_wait_time 80>
