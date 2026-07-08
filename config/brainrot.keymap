@@ -6,11 +6,12 @@
  * MOVE_VAL — скорость увода курсора вправо.
  * SCRL_VAL — сила колесика.
  *
- * Если скроллит мало — подними SCRL_VAL до 120/140.
- * Если перелистывает слишком резко — опусти до 70/80.
+ * Сейчас: сильная прокрутка колесиком.
+ * Если перелистывает слишком много — снизь SCRL_VAL до 130/140
+ * или убери третий SCRL_UP.
  */
 #define ZMK_POINTING_DEFAULT_MOVE_VAL 2500
-#define ZMK_POINTING_DEFAULT_SCRL_VAL 110
+#define ZMK_POINTING_DEFAULT_SCRL_VAL 160
 
 #include <dt-bindings/zmk/pointing.h>
 
@@ -18,8 +19,8 @@
     macros {
         /*
          * 006 / P0.06:
-         * Уводим мышь вправо, потом колесиком скроллим вниз.
-         * Без зажатия ЛКМ, поэтому экран не должен залипать на половине.
+         * Уводим курсор вправо -> микрошаг влево на 10 ms -> колесико.
+         * ВАЖНО: это именно wheel scroll, без зажатия мыши.
          */
         next_video_wheel_hide_right: next_video_wheel_hide_right {
             compatible = "zmk,behavior-macro";
@@ -32,23 +33,20 @@
                 = <&macro_tap_time 700>
                 , <&macro_tap &mmv MOVE_RIGHT>
 
-                /* микрошаг влево, чтобы курсор вернулся в hitbox приложения */
+                /* отъезд влево, чтобы вернуться в hitbox приложения */
                 , <&macro_wait_time 30>
-                , <&macro_tap_time 3>
+                , <&macro_tap_time 10>
                 , <&macro_tap &mmv MOVE_LEFT>
 
-                /* небольшая пауза, чтобы Android успел обработать движение */
+                /* пауза перед колесиком */
                 , <&macro_wait_time 80>
 
-                /* сильный scroll wheel вниз */
+                /* сильная прокрутка колесиком */
                 , <&macro_tap_time 40>
                 , <&macro_tap &msc SCRL_UP>
-
-                /*
-                 * Вторая короткая порция скролла.
-                 * Она помогает добить перелистывание, но не держит экран.
-                 */
-                , <&macro_wait_time 45>
+                , <&macro_wait_time 40>
+                , <&macro_tap &msc SCRL_UP>
+                , <&macro_wait_time 40>
                 , <&macro_tap &msc SCRL_UP>
 
                 /* возвращаем обычную длительность тапа */
@@ -58,7 +56,7 @@
 
         /*
          * 008 / P0.08:
-         * Лайк — двойной клик. Оставляем как было.
+         * Лайк — двойной клик. Не трогаем.
          */
         like_double_click: like_double_click {
             compatible = "zmk,behavior-macro";
@@ -77,9 +75,6 @@
     combos {
         compatible = "zmk,combos";
 
-        /*
-         * 006 + 008 вместе = очистить Bluetooth-сопряжение.
-         */
         bt_clear_combo {
             timeout-ms = <100>;
             key-positions = <0 1>;
@@ -92,7 +87,7 @@
 
         default_layer {
             bindings = <
-                &next_video_wheel_hide_right  /* 006 / P0.06 — колесико вниз + мышь вправо */
+                &next_video_wheel_hide_right  /* 006 / P0.06 — колесико */
                 &like_double_click            /* 008 / P0.08 — лайк */
             >;
         };
