@@ -37,14 +37,14 @@
 
                 /* сильный scroll wheel вниз */
                 , <&macro_tap_time 40>
-                , <&macro_tap &msc SCRL_DOWN>
+                , <&macro_tap &msc SCRL_UP>
 
                 /*
                  * Вторая короткая порция скролла.
                  * Она помогает добить перелистывание, но не держит экран.
                  */
                 , <&macro_wait_time 45>
-                , <&macro_tap &msc SCRL_DOWN>
+                , <&macro_tap &msc SCRL_UP>
 
                 /* возвращаем обычную длительность тапа */
                 , <&macro_tap_time 35>
