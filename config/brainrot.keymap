@@ -3,11 +3,10 @@
 #include <dt-bindings/zmk/bt.h>
 
 /*
- * Теперь 006 — не колесико, а drag-свайп мышью.
+ * 006 теперь снова drag-свайп, но без колесика:
+ * вправо до края -> 20 px влево -> зажать -> свайп вверх -> отпустить -> вернуть вниз.
  *
- * MOVE_VAL отвечает за скорость/длину движения.
- * Если свайп слабый — подними до 2600/3000.
- * Если слишком резкий — опусти до 1800/2000.
+ * Старый свайп был 180 ms, теперь 270 ms = примерно x1.5.
  */
 #define ZMK_POINTING_DEFAULT_MOVE_VAL 2300
 
@@ -17,10 +16,9 @@
     macros {
         /*
          * 006 / P0.06:
-         * Имитация свайпа:
-         * вниз примерно на треть экрана -> зажать ЛКМ -> резво вверх -> отпустить -> вернуть курсор вниз.
+         * Новый алгоритм свайпа.
          */
-        next_video_drag_swipe: next_video_drag_swipe {
+        next_video_edge_swipe: next_video_edge_swipe {
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
             wait-ms = <35>;
@@ -28,47 +26,46 @@
 
             bindings
                 /*
-                 * Чуть уводим вправо, чтобы курсор не был по центру.
-                 * Потом микрошаг влево, чтобы не выйти за hitbox приложения.
+                 * Вправо до максимума.
                  */
-                = <&macro_tap_time 350>
+                = <&macro_tap_time 800>
                 , <&macro_tap &mmv MOVE_RIGHT>
-                , <&macro_wait_time 20>
-                , <&macro_tap_time 10>
-                , <&macro_tap &mmv MOVE_LEFT>
 
                 /*
-                 * Стартовая точка свайпа: опускаемся вниз примерно на треть экрана.
+                 * Примерно 20 px влево, чтобы вернуться внутрь hitbox.
+                 * Если будет слишком далеко от края — уменьши 20 до 12/15.
+                 * Если всё ещё вне hitbox — увеличь до 25/30.
                  */
-                , <&macro_wait_time 40>
-                , <&macro_tap_time 260>
-                , <&macro_tap &mmv MOVE_DOWN>
+                , <&macro_wait_time 25>
+                , <&macro_tap_time 20>
+                , <&macro_tap &mmv MOVE_LEFT>
 
                 /*
                  * Зажимаем ЛКМ.
                  */
-                , <&macro_wait_time 40>
+                , <&macro_wait_time 35>
                 , <&macro_press &mkp LCLK>
 
                 /*
-                 * Резвый свайп вверх.
+                 * Свайп вверх. Было 180 ms, стало 270 ms.
                  */
-                , <&macro_wait_time 30>
-                , <&macro_tap_time 180>
+                , <&macro_wait_time 25>
+                , <&macro_tap_time 270>
                 , <&macro_tap &mmv MOVE_UP>
 
                 /*
-                 * ОБЯЗАТЕЛЬНО отпускаем, чтобы окно не зависало на половине.
+                 * Отпускаем ЛКМ, чтобы приложение само докрутило и не зависло на половине.
                  */
-                , <&macro_wait_time 30>
+                , <&macro_wait_time 25>
                 , <&macro_release &mkp LCLK>
 
                 /*
-                 * Возврат курсора вниз примерно в начальную точку.
-                 * Это уже без зажатия кнопки мыши.
+                 * Возврат в начальное положение:
+                 * ровно такой же по времени ход вниз, как был свайп вверх.
+                 * Уже без зажатой ЛКМ.
                  */
-                , <&macro_wait_time 160>
-                , <&macro_tap_time 180>
+                , <&macro_wait_time 120>
+                , <&macro_tap_time 270>
                 , <&macro_tap &mmv MOVE_DOWN>
 
                 /*
@@ -111,7 +108,7 @@
 
         default_layer {
             bindings = <
-                &next_video_drag_swipe  /* 006 / P0.06 — drag-свайп */
+                &next_video_edge_swipe  /* 006 / P0.06 — свайп от правого края */
                 &like_double_click      /* 008 / P0.08 — лайк */
             >;
         };
