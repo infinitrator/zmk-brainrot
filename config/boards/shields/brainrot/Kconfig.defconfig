@@ -1,0 +1,6 @@
+if SHIELD_BRAINROT
+
+config ZMK_KEYBOARD_NAME
+    default "Brainrot"
+
+endif
