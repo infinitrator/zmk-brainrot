@@ -74,16 +74,17 @@
         /*
          * 008 / P0.08:
          * Лайк — двойной клик.
+         * Вернули более надёжные тайминги: медленнее, но срабатывает стабильнее.
          */
         like_double_click: like_double_click {
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
-            wait-ms = <45>;
-            tap-ms = <25>;
+            wait-ms = <90>;
+            tap-ms = <40>;
 
             bindings
                 = <&macro_tap &mkp LCLK>
-                , <&macro_wait_time 55>
+                , <&macro_wait_time 95>
                 , <&macro_tap &mkp LCLK>
                 ;
         };
