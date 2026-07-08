@@ -3,15 +3,14 @@
 #include <dt-bindings/zmk/bt.h>
 
 /*
+ * Слабее и стабильнее:
  * MOVE_VAL — скорость увода курсора вправо.
  * SCRL_VAL — сила колесика.
  *
- * Сейчас: сильная прокрутка колесиком.
- * Если перелистывает слишком много — снизь SCRL_VAL до 130/140
- * или убери третий SCRL_UP.
+ * Было 160 и 3 импульса. Сейчас 65 и 1 импульс.
  */
-#define ZMK_POINTING_DEFAULT_MOVE_VAL 2500
-#define ZMK_POINTING_DEFAULT_SCRL_VAL 160
+#define ZMK_POINTING_DEFAULT_MOVE_VAL 2200
+#define ZMK_POINTING_DEFAULT_SCRL_VAL 65
 
 #include <dt-bindings/zmk/pointing.h>
 
@@ -19,37 +18,40 @@
     macros {
         /*
          * 006 / P0.06:
-         * Уводим курсор вправо -> микрошаг влево на 10 ms -> колесико.
-         * ВАЖНО: это именно wheel scroll, без зажатия мыши.
+         * Увести курсор вправо -> 10 ms влево в hitbox -> один короткий wheel-scroll.
+         * Направление инвертировано обратно: SCRL_DOWN вместо SCRL_UP.
+         * Никакого drag, никакого ЛКМ, только колесико.
          */
-        next_video_wheel_hide_right: next_video_wheel_hide_right {
+        next_video_wheel_safe: next_video_wheel_safe {
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
             wait-ms = <35>;
-            tap-ms = <35>;
+            tap-ms = <25>;
 
             bindings
-                /* убираем курсор вправо до края */
-                = <&macro_tap_time 700>
+                /* курсор вправо */
+                = <&macro_tap_time 450>
                 , <&macro_tap &mmv MOVE_RIGHT>
 
-                /* отъезд влево, чтобы вернуться в hitbox приложения */
-                , <&macro_wait_time 30>
+                /* маленький возврат влево, чтобы попасть в hitbox приложения */
+                , <&macro_wait_time 25>
                 , <&macro_tap_time 10>
                 , <&macro_tap &mmv MOVE_LEFT>
 
                 /* пауза перед колесиком */
-                , <&macro_wait_time 80>
+                , <&macro_wait_time 70>
 
-                /* сильная прокрутка колесиком */
-                , <&macro_tap_time 40>
-                , <&macro_tap &msc SCRL_UP>
-                , <&macro_wait_time 40>
-                , <&macro_tap &msc SCRL_UP>
-                , <&macro_wait_time 40>
-                , <&macro_tap &msc SCRL_UP>
+                /* один короткий wheel-scroll в другую сторону */
+                , <&macro_tap_time 25>
+                , <&macro_tap &msc SCRL_DOWN>
 
-                /* возвращаем обычную длительность тапа */
+                /*
+                 * Пауза после wheel-события.
+                 * Это не удержание, а наоборот "дать приложению отпустить анимацию".
+                 */
+                , <&macro_wait_time 220>
+
+                /* вернуть обычную длительность */
                 , <&macro_tap_time 35>
                 ;
         };
@@ -87,8 +89,8 @@
 
         default_layer {
             bindings = <
-                &next_video_wheel_hide_right  /* 006 / P0.06 — колесико */
-                &like_double_click            /* 008 / P0.08 — лайк */
+                &next_video_wheel_safe  /* 006 / P0.06 — безопасный wheel-scroll */
+                &like_double_click      /* 008 / P0.08 — лайк */
             >;
         };
     };
