@@ -3,79 +3,57 @@
 #include <dt-bindings/zmk/bt.h>
 
 /*
- * Скорость движения мыши.
- * Если курсор не доезжает до угла — подними до 3000/3500.
- * Если свайп слишком резкий — опусти до 1800/2000.
+ * MOVE_VAL — скорость увода курсора вправо.
+ * SCRL_VAL — сила колесика.
+ *
+ * Если скроллит мало — подними SCRL_VAL до 120/140.
+ * Если перелистывает слишком резко — опусти до 70/80.
  */
 #define ZMK_POINTING_DEFAULT_MOVE_VAL 2500
+#define ZMK_POINTING_DEFAULT_SCRL_VAL 110
+
 #include <dt-bindings/zmk/pointing.h>
 
 / {
     macros {
         /*
          * 006 / P0.06:
-         * Android mouse-drag свайп:
-         * вправо-вниз в угол -> чуть вверх -> зажать ЛКМ -> свайп вверх -> отпустить -> спрятать в угол.
+         * Уводим мышь вправо, потом колесиком скроллим вниз.
+         * Без зажатия ЛКМ, поэтому экран не должен залипать на половине.
          */
-        next_video_drag: next_video_drag {
+        next_video_wheel_hide_right: next_video_wheel_hide_right {
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
             wait-ms = <35>;
             tap-ms = <35>;
 
             bindings
-                /*
-                 * Уводим курсор в самый правый нижний край.
-                 */
-                = <&macro_tap_time 900>
+                /* убираем курсор вправо */
+                = <&macro_tap_time 700>
                 , <&macro_tap &mmv MOVE_RIGHT>
-                , <&macro_tap_time 900>
-                , <&macro_tap &mmv MOVE_DOWN>
+
+                /* небольшая пауза, чтобы Android успел обработать движение */
+                , <&macro_wait_time 80>
+
+                /* сильный scroll wheel вниз */
+                , <&macro_tap_time 40>
+                , <&macro_tap &msc SCRL_DOWN>
 
                 /*
-                 * Чуть поднимаем курсор, чтобы свайп начинался не прямо с системного края.
+                 * Вторая короткая порция скролла.
+                 * Она помогает добить перелистывание, но не держит экран.
                  */
-                , <&macro_tap_time 160>
-                , <&macro_tap &mmv MOVE_UP>
+                , <&macro_wait_time 45>
+                , <&macro_tap &msc SCRL_DOWN>
 
-                /*
-                 * Зажали ЛКМ.
-                 */
-                , <&macro_wait_time 60>
-                , <&macro_press &mkp LCLK>
-
-                /*
-                 * Сам свайп вверх. Это основной параметр силы перелистывания.
-                 */
-                , <&macro_wait_time 50>
-                , <&macro_tap_time 520>
-                , <&macro_tap &mmv MOVE_UP>
-
-                /*
-                 * ВАЖНО: отпускаем ЛКМ, чтобы экран не залипал на половине.
-                 */
-                , <&macro_wait_time 40>
-                , <&macro_release &mkp LCLK>
-
-                /*
-                 * После отпускания снова прячем курсор в правый нижний край.
-                 */
-                , <&macro_wait_time 120>
-                , <&macro_tap_time 650>
-                , <&macro_tap &mmv MOVE_RIGHT>
-                , <&macro_tap_time 650>
-                , <&macro_tap &mmv MOVE_DOWN>
-
-                /*
-                 * Возвращаем обычную длительность тапа.
-                 */
+                /* возвращаем обычную длительность тапа */
                 , <&macro_tap_time 35>
                 ;
         };
 
         /*
          * 008 / P0.08:
-         * Двойной клик там, где стоит курсор.
+         * Лайк — двойной клик. Оставляем как было.
          */
         like_double_click: like_double_click {
             compatible = "zmk,behavior-macro";
@@ -109,8 +87,8 @@
 
         default_layer {
             bindings = <
-                &next_video_drag    /* 006 / P0.06 — свайп вверх */
-                &like_double_click  /* 008 / P0.08 — лайк */
+                &next_video_wheel_hide_right  /* 006 / P0.06 — колесико вниз + мышь вправо */
+                &like_double_click            /* 008 / P0.08 — лайк */
             >;
         };
     };
