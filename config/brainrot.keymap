@@ -3,8 +3,9 @@
 #include <dt-bindings/zmk/bt.h>
 
 /*
- * Скорость движения курсора.
- * Если курсор не доезжает до левого края — увеличь до 3000/3500.
+ * Скорость движения мыши.
+ * Если курсор не доезжает до угла — подними до 3000/3500.
+ * Если свайп слишком резкий — опусти до 1800/2000.
  */
 #define ZMK_POINTING_DEFAULT_MOVE_VAL 2500
 #include <dt-bindings/zmk/pointing.h>
@@ -13,31 +14,68 @@
     macros {
         /*
          * 006 / P0.06:
-         * Нажимает DOWN, потом уводит курсор влево в край экрана.
+         * Android mouse-drag свайп:
+         * вправо-вниз в угол -> чуть вверх -> зажать ЛКМ -> свайп вверх -> отпустить -> спрятать в угол.
          */
-        next_down_hide_left: next_down_hide_left {
+        next_video_drag: next_video_drag {
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
-            wait-ms = <25>;
+            wait-ms = <35>;
             tap-ms = <35>;
 
             bindings
-                = <&macro_tap &kp DOWN>
-                , <&macro_wait_time 80>
-
-                /* долбимся влево в край */
+                /*
+                 * Уводим курсор в самый правый нижний край.
+                 */
+                = <&macro_tap_time 900>
+                , <&macro_tap &mmv MOVE_RIGHT>
                 , <&macro_tap_time 900>
-                , <&macro_tap &mmv MOVE_LEFT>
+                , <&macro_tap &mmv MOVE_DOWN>
 
-                /* возвращаем обычную длительность тапа */
+                /*
+                 * Чуть поднимаем курсор, чтобы свайп начинался не прямо с системного края.
+                 */
+                , <&macro_tap_time 160>
+                , <&macro_tap &mmv MOVE_UP>
+
+                /*
+                 * Зажали ЛКМ.
+                 */
+                , <&macro_wait_time 60>
+                , <&macro_press &mkp LCLK>
+
+                /*
+                 * Сам свайп вверх. Это основной параметр силы перелистывания.
+                 */
+                , <&macro_wait_time 50>
+                , <&macro_tap_time 520>
+                , <&macro_tap &mmv MOVE_UP>
+
+                /*
+                 * ВАЖНО: отпускаем ЛКМ, чтобы экран не залипал на половине.
+                 */
+                , <&macro_wait_time 40>
+                , <&macro_release &mkp LCLK>
+
+                /*
+                 * После отпускания снова прячем курсор в правый нижний край.
+                 */
+                , <&macro_wait_time 120>
+                , <&macro_tap_time 650>
+                , <&macro_tap &mmv MOVE_RIGHT>
+                , <&macro_tap_time 650>
+                , <&macro_tap &mmv MOVE_DOWN>
+
+                /*
+                 * Возвращаем обычную длительность тапа.
+                 */
                 , <&macro_tap_time 35>
                 ;
         };
 
         /*
          * 008 / P0.08:
-         * Просто двойной клик там, где сейчас стоит курсор.
-         * Никаких движений мыши.
+         * Двойной клик там, где стоит курсор.
          */
         like_double_click: like_double_click {
             compatible = "zmk,behavior-macro";
@@ -71,8 +109,8 @@
 
         default_layer {
             bindings = <
-                &next_down_hide_left  /* 006 / P0.06 — DOWN + мышь влево */
-                &like_double_click    /* 008 / P0.08 — двойной клик */
+                &next_video_drag    /* 006 / P0.06 — свайп вверх */
+                &like_double_click  /* 008 / P0.08 — лайк */
             >;
         };
     };
