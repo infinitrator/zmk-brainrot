@@ -3,12 +3,11 @@
 #include <dt-bindings/zmk/bt.h>
 
 /*
- * 006 теперь снова drag-свайп, но без колесика:
- * вправо до края -> 20 px влево -> зажать -> свайп вверх -> отпустить -> вернуть вниз.
- *
- * Старый свайп был 180 ms, теперь 270 ms = примерно x1.5.
+ * Быстрая версия.
+ * Было MOVE_VAL 2300 и свайп 270 ms.
+ * Теперь MOVE_VAL 4200 и свайп 150 ms — расстояние примерно то же, но действие быстрее.
  */
-#define ZMK_POINTING_DEFAULT_MOVE_VAL 2300
+#define ZMK_POINTING_DEFAULT_MOVE_VAL 4200
 
 #include <dt-bindings/zmk/pointing.h>
 
@@ -16,78 +15,75 @@
     macros {
         /*
          * 006 / P0.06:
-         * Новый алгоритм свайпа.
+         * вправо до края -> чуть влево -> зажать -> быстрый свайп вверх -> отпустить -> такой же быстрый возврат вниз.
          */
-        next_video_edge_swipe: next_video_edge_swipe {
+        next_video_edge_swipe_fast: next_video_edge_swipe_fast {
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
-            wait-ms = <35>;
-            tap-ms = <35>;
+            wait-ms = <10>;
+            tap-ms = <20>;
 
             bindings
                 /*
                  * Вправо до максимума.
+                 * Из-за высокой скорости 420 ms должно хватить с запасом.
                  */
-                = <&macro_tap_time 800>
+                = <&macro_tap_time 420>
                 , <&macro_tap &mmv MOVE_RIGHT>
 
                 /*
-                 * Примерно 20 px влево, чтобы вернуться внутрь hitbox.
-                 * Если будет слишком далеко от края — уменьши 20 до 12/15.
-                 * Если всё ещё вне hitbox — увеличь до 25/30.
+                 * Примерно тот же отступ влево, что раньше был 20 ms на меньшей скорости.
                  */
-                , <&macro_wait_time 25>
-                , <&macro_tap_time 20>
+                , <&macro_wait_time 8>
+                , <&macro_tap_time 11>
                 , <&macro_tap &mmv MOVE_LEFT>
 
                 /*
-                 * Зажимаем ЛКМ.
+                 * Зажать ЛКМ.
                  */
-                , <&macro_wait_time 35>
+                , <&macro_wait_time 8>
                 , <&macro_press &mkp LCLK>
 
                 /*
-                 * Свайп вверх. Было 180 ms, стало 270 ms.
+                 * Быстрый свайп вверх.
                  */
-                , <&macro_wait_time 25>
-                , <&macro_tap_time 270>
+                , <&macro_wait_time 8>
+                , <&macro_tap_time 150>
                 , <&macro_tap &mmv MOVE_UP>
 
                 /*
-                 * Отпускаем ЛКМ, чтобы приложение само докрутило и не зависло на половине.
+                 * Отпустить. Это критично, чтобы приложение не залипало на половине.
                  */
-                , <&macro_wait_time 25>
+                , <&macro_wait_time 8>
                 , <&macro_release &mkp LCLK>
 
                 /*
-                 * Возврат в начальное положение:
-                 * ровно такой же по времени ход вниз, как был свайп вверх.
-                 * Уже без зажатой ЛКМ.
+                 * Возврат вниз таким же движением, как свайп вверх.
                  */
-                , <&macro_wait_time 120>
-                , <&macro_tap_time 270>
+                , <&macro_wait_time 35>
+                , <&macro_tap_time 150>
                 , <&macro_tap &mmv MOVE_DOWN>
 
                 /*
-                 * Возвращаем обычную длительность тапа.
+                 * Возвращаем обычную длительность.
                  */
-                , <&macro_tap_time 35>
+                , <&macro_tap_time 20>
                 ;
         };
 
         /*
          * 008 / P0.08:
-         * Лайк — двойной клик. Не трогаем.
+         * Лайк — двойной клик.
          */
         like_double_click: like_double_click {
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
-            wait-ms = <90>;
-            tap-ms = <40>;
+            wait-ms = <45>;
+            tap-ms = <25>;
 
             bindings
                 = <&macro_tap &mkp LCLK>
-                , <&macro_wait_time 90>
+                , <&macro_wait_time 55>
                 , <&macro_tap &mkp LCLK>
                 ;
         };
@@ -108,8 +104,8 @@
 
         default_layer {
             bindings = <
-                &next_video_edge_swipe  /* 006 / P0.06 — свайп от правого края */
-                &like_double_click      /* 008 / P0.08 — лайк */
+                &next_video_edge_swipe_fast  /* 006 / P0.06 — быстрый свайп */
+                &like_double_click           /* 008 / P0.08 — лайк */
             >;
         };
     };
