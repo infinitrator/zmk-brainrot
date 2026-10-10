@@ -18,7 +18,7 @@
         };
 
         /*
-         * 008 / P0.08: влево до края, вверх, двойной клик, вниз.
+         * 008 / P0.08: вправо до края, вверх, двойной клик, вниз.
          * Оба вертикальных движения имеют одинаковые скорость и длительность.
          */
         like_double_click: like_double_click {
@@ -29,13 +29,13 @@
 
             bindings
                 = <&macro_tap_time 420>
-                , <&macro_tap &mmv MOVE_LEFT>
+                , <&macro_tap &mmv MOVE_RIGHT>
                 , <&macro_tap_time 150>
                 , <&macro_tap &mmv MOVE_UP>
-                , <&macro_wait_time 60>
+                , <&macro_wait_time 100>
                 , <&macro_tap_time 40>
                 , <&macro_tap &mkp LCLK>
-                , <&macro_wait_time 95>
+                , <&macro_wait_time 150>
                 , <&macro_tap &mkp LCLK>
                 , <&macro_wait_time 60>
                 , <&macro_tap_time 150>
